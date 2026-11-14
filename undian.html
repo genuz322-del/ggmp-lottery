@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FITUR V1 - Premium Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Rajdhani:wght@500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-blue: #00f0ff;
+            --neon-blue-glow: rgba(0, 240, 255, 0.3);
+            --glass-bg: rgba(0, 10, 30, 0.25);
+            --glass-border: rgba(0, 240, 255, 0.3);
+            --card-bg: rgba(0, 15, 40, 0.3);
+            --text-main: #ffffff;
+            --text-muted: #9bc1e0;
+            --sidebar-width: 170px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* ================= 1. LOADING SCREEN ================= */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #020b1a;
+            z-index: 999999; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .loader-ring-wrapper {
+            position: relative;
+            width: 120px; height: 120px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%; height: 100%;
+            border: 3px solid transparent;
+            border-top: 3px solid var(--neon-blue);
+            border-bottom: 3px solid var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 20px var(--neon-blue-glow);
+        }
+
+        .loader-ring-inner {
+            position: absolute;
+            width: 80%; height: 80%;
+            border: 2px dashed #0050ff;
+            border-radius: 50%;
+            animation: spin-reverse 2s linear infinite;
+        }
+
+        .loader-icon {
+            font-size: 40px;
+            color: var(--neon-blue);
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulse { 0% { transform: scale(0.9); } 100% { transform: scale(1.1); } }
+
+        .loader-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            margin-bottom: 5px;
+            animation: blink-text 2s infinite;
+        }
+
+        .loader-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            color: var(--neon-blue);
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        @keyframes blink-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .loader-progress-track {
+            width: 80%;
+            max-width: 300px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .loader-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0050ff, var(--neon-blue));
+            box-shadow: 0 0 15px var(--neon-blue);
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+
+        .loader-percentage {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .fade-out { opacity: 0; visibility: hidden; }
+
+        /* ================= BACKGROUND UTAMA ================= */
+        .bg-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://res.cloudinary.com/iazyafgr/image/upload/f_auto,q_auto/1000106341'); 
+            background-color: #020b1a;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -2;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 5, 15, 0.2); 
+            z-index: -1;
+        }
+
+        /* DASHBOARD CONTAINER */
+        .dashboard {
+            width: 96vw;
+            height: 94vh;
+            max-width: 1400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid var(--neon-blue);
+            border-radius: 15px;
+            box-shadow: 0 0 20px var(--neon-blue-glow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            opacity: 0; 
+            transition: opacity 0.8s ease;
+        }
+
+        .show-dashboard { opacity: 1; }
+
+        /* HEADER */
+        header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0, 10, 30, 0.15);
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            font-size: 22px;
+            color: var(--neon-blue);
+            filter: drop-shadow(0 0 5px var(--neon-blue));
+        }
+
+        .brand-text h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .brand-text p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* MAIN LAYOUT */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid var(--glass-border);
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+            background: rgba(0, 10, 30, 0.15);
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(0,191,255,0.8) 0%, rgba(0,240,255,0.8) 100%);
+            color: #000;
+            font-weight: 700;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue-glow);
+        }
+
+        /* CONTENT AREA */
+        .content-area {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-pane {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* MONITORING PANEL */
+        .monitoring-panel {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .monitor-card {
+            flex: 1;
+            background: var(--card-bg);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .monitor-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .monitor-card .label { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 2px; }
+        .monitor-card .value { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; transition: color 0.3s ease; }
+
+        /* STATUS PANEL */
+        .status-panel {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-left: 3px solid var(--neon-blue);
+            border-radius: 8px;
+            padding: 10px 15px;
+            flex-shrink: 0;
+        }
+
+        .status-panel h3 { font-size: 14px; margin-bottom: 2px; color: var(--text-main); transition: color 0.3s ease; }
+        .status-panel p { font-size: 11px; color: var(--text-muted); }
+
+        /* FITUR KARTU */
+        .features-grid {
+            display: flex;
+            gap: 12px;
+            flex: 1; 
+            min-height: 0; 
+            flex-wrap: wrap; 
+        }
+
+        .feature-card {
+            flex: 1 1 250px; 
+            background: var(--card-bg);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-content { flex-grow: 1; }
+        .feature-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .feature-icon { width: 28px; height: 28px; background: rgba(0, 240, 255, 0.1); border-radius: 6px; display: flex; justify-content: center; align-items: center; color: var(--neon-blue); font-size: 14px; }
+        .feature-title { font-size: 13px; font-weight: 600; }
+        .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+        .feature-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto; 
+            padding-top: 8px;
+            border-top: 1px dashed rgba(0, 240, 255, 0.2);
+        }
+        .toggle-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+        /* TOGGLE SWITCH */
+        .toggle-switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #1a2c42; transition: .4s; border-radius: 20px; border: 1px solid #2a4c7a; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: #8bb5d6; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--neon-blue); border-color: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue-glow); }
+        input:checked + .slider:before { transform: translateX(18px); background-color: #fff; }
+
+        /* PLACEHOLDER */
+        .placeholder-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            border: 1px dashed var(--glass-border);
+            border-radius: 10px;
+            background: var(--card-bg);
+        }
+        .placeholder-content i { font-size: 30px; margin-bottom: 10px; color: var(--neon-blue); }
+
+        /* FOOTER */
+        footer {
+            height: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(0, 10, 30, 0.2);
+            flex-shrink: 0;
+        }
+
+        .footer-left { display: flex; align-items: center; gap: 10px; }
+        .status-dot { width: 8px; height: 8px; background-color: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 8px var(--neon-blue); animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .footer-status { font-size: 12px; font-weight: 600; letter-spacing: 1px; }
+        .footer-credit { font-size: 10px; color: var(--text-muted); }
+
+        .btn-reset {
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 6px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        .btn-reset:hover { background: var(--neon-blue); color: #000; }
+
+        /* ================= FPS OVERLAY ================= */
+        .fps-overlay {
+            position: fixed; bottom: 0; left: 0;         
+            background-color: #000000; color: #ffffff;  
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 14px; font-weight: bold; padding: 4px 10px;
+            display: none; z-index: 99999; 
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ================= LOADING SCREEN ================= -->
+    <div id="loading-screen">
+        <div class="loader-ring-wrapper">
+            <div class="loader-ring"></div>
+            <div class="loader-ring-inner"></div>
+            <i class="fa-solid fa-rocket loader-icon"></i>
+        </div>
+        <div class="loader-title">VANZIX SYS</div>
+        <div class="loader-subtitle">INITIALIZING...</div>
+        
+        <div class="loader-progress-track">
+            <div class="loader-progress-fill" id="loader-progress-fill"></div>
+        </div>
+        <div class="loader-percentage" id="loader-percentage">0%</div>
+    </div>
+
+    <!-- ================= DASHBOARD ================= -->
+    <div class="fps-overlay" id="fps-overlay">
+        FPS <span id="fps-value">150</span>
+    </div>
+
+    <div class="bg-container"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="dashboard" id="dashboard-container">
+        
+        <header>
+            <div class="brand">
+                <i class="fa-solid fa-rocket brand-icon"></i>
+                <div class="brand-text">
+                    <h1>SISTEM SETTINGS</h1>
+                    <p>GGMP 3 Prem Vanzix</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="nav-item active" onclick="openTab(event, 'performance')">Performance</div>
+                <div class="nav-item" onclick="openTab(event, 'sensitivity')">Sensitivity</div>
+                <div class="nav-item" onclick="openTab(event, 'visual')">Visual</div>
+                <div class="nav-item" onclick="openTab(event, 'tools')">Tools</div>
+                <div class="nav-item" onclick="openTab(event, 'grafik')">Grafik</div>
+                <div class="nav-item" onclick="openTab(event, 'music')">Music</div>
+            </aside>
+
+            <main class="content-area">
+                
+                <!-- TAB PERFORMANCE -->
+                <div id="performance" class="tab-pane active">
+                    <div class="monitoring-panel">
+                        <div class="monitor-card">
+                            <div class="label">RAM</div>
+                            <div class="value" id="val-ram">0%</div>
+                        </div>
+                        <div class="monitor-card">
+                            <div class="label">CPU</div>
+                            <div class="value" id="val-cpu">0°C</div>
+                        </div>
+                        <div class="monitor-card">
+                            <div class="label">PING</div>
+                            <div class="value" id="val-ping">0 ms</div>
+                        </div>
+                    </div>
+
+                    <div class="status-panel">
+                        <h3 id="optimization-status" style="color: #ff4444;">Optimasi Tidak Aktif</h3>
+                        <p id="optimization-desc">Semua fitur optimasi sedang dimatikan.</p>
+                    </div>
+
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-keyboard"></i></div>
+                                    <div class="feature-title">Aggressive Cleaner</div>
+                                </div>
+                                <div class="feature-desc">Hapus RAM log sistem & aplikasi background secara paksa.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle performance-toggle" id="toggle-cleaner" onchange="updateStatus()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+                                    <div class="feature-title">CPU Optimizer</div>
+                                </div>
+                                <div class="feature-desc">Meningkatkan performa kinerja CPU.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle performance-toggle" id="toggle-cpu" onchange="updateStatus()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-power-off"></i></div>
+                                    <div class="feature-title">Keep CPU Awake</div>
+                                </div>
+                                <div class="feature-desc">Mencegah HP tidur (Doze) agar performa tetap di atas.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle performance-toggle" id="toggle-awake" onchange="updateStatus()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB SENSITIVITY -->
+                <div id="sensitivity" class="tab-pane">
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                                    <div class="feature-title">Debugging Sensitivity</div>
+                                </div>
+                                <div class="feature-desc">Memperbaiki sensitivitas saat bermain game agar lebih lancar dan mengurangi lag di layar.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                                    <div class="feature-title">Mouse DPI Boost</div>
+                                </div>
+                                <div class="feature-desc">Meningkatkan sensitivitas kursor (kiri).</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB VISUAL -->
+                <div id="visual" class="tab-pane">
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                    <div class="feature-title">FPS Monitor</div>
+                                </div>
+                                <div class="feature-desc">Menampilkan overlay frame rate di layar.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" id="toggle-fps-monitor" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-ban"></i></div>
+                                    <div class="feature-title">Disable Animations</div>
+                                </div>
+                                <div class="feature-desc">Mematikan animasi sistem agar UI terasa instan tanpa delay.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="feature-card">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+                                    <div class="feature-title">FPS Stability Lock</div>
+                                </div>
+                                <div class="feature-desc">Mengunci Refresh Rate layar ke 120Hz agar frame lebih stabil.</div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB TOOLS -->
+                <div id="tools" class="tab-pane">
+                    <div class="placeholder-content">
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        <h3>Menu Tools</h3>
+                    </div>
+                </div>
+
+                <!-- TAB GRAFIK (DIPERBARUI) -->
+                <div id="grafik" class="tab-pane">
+                    <!-- Menggunakan inline style agar kotaknya tidak melar ke bawah atau terlalu lebar -->
+                    <div class="features-grid" style="align-items: flex-start; align-content: flex-start;">
+                        
+                        <!-- Satu Kotak dengan Toggle -->
+                        <div class="feature-card" style="max-width: 400px; flex: 1 1 100%;">
+                            <div class="feature-content">
+                                <div class="feature-header">
+                                    <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
+                                    <div class="feature-title">GRAFIK MC</div>
+                                </div>
+                                <div class="feature-desc">
+                                    <span id="grafik-desc">Mengubah grafik atau texture pada game menjadi lebih HD, jernih, dan smooth.</span>
+                                </div>
+                            </div>
+                            <div class="feature-action">
+                                <span class="toggle-label">OFF</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="feature-toggle" id="toggle-grafik" onchange="toggleUI(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TAB MUSIC -->
+                <div id="music" class="tab-pane">
+                    <div class="placeholder-content">
+                        <i class="fa-solid fa-music"></i>
+                        <h3>Menu Music</h3>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <footer>
+            <div class="footer-left">
+                <div class="status-dot"></div>
+                <div>
+                    <div class="footer-status">DEVELOPER VANZIX</div>
+                    <div class="footer-credit">Sera Punya Arbhy 💕 biixeyaa</div>
+                </div>
+            </div>
+            <button class="btn-reset" onclick="resetToggles()">
+                <i class="fa-solid fa-rotate-right"></i> RESET
+            </button>
+        </footer>
+
+    </div>
+
+    <script>
+        // ================= 1. LOGIKA LOADING SCREEN =================
+        let loadProgress = 0;
+        let loadInterval;
+
+        function startLoading() {
+            loadInterval = setInterval(() => {
+                loadProgress += Math.floor(Math.random() * 5) + 2; 
+                
+                if (loadProgress >= 100) {
+                    loadProgress = 100;
+                    clearInterval(loadInterval);
+                    
+                    document.getElementById('loader-progress-fill').style.width = '100%';
+                    document.getElementById('loader-percentage').innerText = '100%';
+                    
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').classList.add('fade-out');
+                        
+                        setTimeout(() => {
+                            document.getElementById('dashboard-container').classList.add('show-dashboard');
+                            document.getElementById('loading-screen').style.display = 'none'; 
+                            
+                            updateStatus();
+                            initializeGraphicGate();
+                            setInterval(updateRAM, 2000);
+                            setInterval(updateCPU, 2500);
+                            setInterval(updatePing, 4000);
+                        }, 600); 
+                        
+                    }, 400); 
+                } else {
+                    document.getElementById('loader-progress-fill').style.width = loadProgress + '%';
+                    document.getElementById('loader-percentage').innerText = loadProgress + '%';
+                }
+            }, 50); 
+        }
+
+        window.onload = function() {
+            startLoading();
+        };
+
+        // ================= LOGIKA METRIK PERFORMA =================
+        let isPinging = false;
+
+        function updateRAM() {
+            const toggle = document.getElementById('toggle-cleaner');
+            if (toggle.checked) {
+                if (performance && performance.memory) {
+                    let usedMemory = performance.memory.usedJSHeapSize;
+                    let totalMemory = performance.memory.jsHeapSizeLimit;
+                    let ramPercent = Math.round((usedMemory / totalMemory) * 100);
+                    ramPercent = Math.min(95, Math.max(30, ramPercent + Math.floor(Math.random() * 5 - 2)));
+                    document.getElementById('val-ram').innerText = ramPercent + '%';
+                } else {
+                    let ramSim = Math.floor(Math.random() * (75 - 45 + 1)) + 45;
+                    document.getElementById('val-ram').innerText = ramSim + '%';
+                }
+            } else {
+                document.getElementById('val-ram').innerText = '0%';
+            }
+        }
+
+        function updateCPU() {
+            const toggle = document.getElementById('toggle-cpu');
+            if (toggle.checked) {
+                let cpuTemp = Math.floor(Math.random() * (48 - 38 + 1)) + 38; 
+                document.getElementById('val-cpu').innerText = cpuTemp + '°C';
+            } else {
+                document.getElementById('val-cpu').innerText = '0°C';
+            }
+        }
+
+        async function updatePing() {
+            const toggle = document.getElementById('toggle-awake');
+            if (toggle.checked) {
+                if (isPinging) return;
+                isPinging = true;
+                const startTime = Date.now();
+                try {
+                    await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
+                    const endTime = Date.now();
+                    let ping = endTime - startTime;
+                    ping = Math.max(10, ping + Math.floor(Math.random() * 5)); 
+                    document.getElementById('val-ping').innerText = ping + ' ms';
+                } catch (error) {
+                    document.getElementById('val-ping').innerText = '15 ms'; 
+                }
+                isPinging = false;
+            } else {
+                document.getElementById('val-ping').innerText = '0 ms';
+            }
+        }
+
+        // ================= NAVIGASI SIDEBAR =================
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tab-pane");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            const navItems = document.getElementsByClassName("nav-item");
+            for (let i = 0; i < navItems.length; i++) {
+                navItems[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        // ================= SIMULASI FPS (160 - 220) =================
+        let fpsIntervalId = null;
+        const fpsDisplay = document.getElementById('fps-value');
+        const fpsOverlay = document.getElementById('fps-overlay');
+
+        function startFpsSimulation() {
+            if (fpsIntervalId) return; 
+            generateFpsNumber();
+            fpsIntervalId = setInterval(generateFpsNumber, 5000);
+        }
+
+        function stopFpsSimulation() {
+            clearInterval(fpsIntervalId);
+            fpsIntervalId = null;
+        }
+
+        function generateFpsNumber() {
+            const randomFps = Math.floor(Math.random() * (220 - 160 + 1)) + 160;
+            fpsDisplay.innerText = randomFps;
+        }
+
+        // ================= GATE GRAFIK MC =================
+        function initializeGraphicGate() {
+            const toggle = document.getElementById('toggle-grafik');
+            const desc = document.getElementById('grafik-desc');
+            const supported = !!(window.GGMP && GGMP.isGraphicSupported && GGMP.isGraphicSupported());
+            if (!supported) {
+                toggle.checked = false;
+                toggle.disabled = true;
+                if (desc) desc.textContent = 'Device Anda tidak support driver ANGLE';
+                const label = toggle.closest('.feature-action').querySelector('.toggle-label');
+                if (label) label.textContent = 'LOCKED';
+            }
+        }
+
+        // ================= FUNGSI UI TOGGLE UMUM =================
+        function toggleUI(checkbox) {
+            const label = checkbox.closest('.feature-action').querySelector('.toggle-label');
+            if (label) {
+                label.textContent = checkbox.checked ? 'ON' : 'OFF';
+                label.style.color = checkbox.checked ? 'var(--neon-blue)' : 'var(--text-muted)';
+            }
+
+            if (checkbox.id === 'toggle-grafik') {
+                const supported = !!(window.GGMP && GGMP.isGraphicSupported && GGMP.isGraphicSupported());
+                if (!supported) {
+                    checkbox.checked = false;
+                    initializeGraphicGate();
+                    return;
+                }
+                if (window.GGMP && GGMP.setGraphicResolution) {
+                    GGMP.setGraphicResolution(checkbox.checked);
+                }
+            }
+
+            if (checkbox.id === 'toggle-fps-monitor') {
+                if (checkbox.checked) {
+                    fpsOverlay.style.display = 'block';
+                    if (window.GGMP && GGMP.setFakeFps) GGMP.setFakeFps('auto');
+                    generateFpsNumber();
+                    startFpsSimulation();
+                } else {
+                    fpsOverlay.style.display = 'none';
+                    if (window.GGMP && GGMP.stopFakeFps) GGMP.stopFakeFps();
+                    stopFpsSimulation();
+                }
+            }
+        }
+
+        // ================= UPDATE STATUS PANEL UTAMA =================
+        function updateStatus() {
+            const toggleCleaner = document.getElementById('toggle-cleaner');
+            const toggleCpu = document.getElementById('toggle-cpu');
+            const toggleAwake = document.getElementById('toggle-awake');
+            
+            let activeCount = 0;
+            if (toggleCleaner.checked) activeCount++;
+            if (toggleCpu.checked) activeCount++;
+            if (toggleAwake.checked) activeCount++;
+
+            [toggleCleaner, toggleCpu, toggleAwake].forEach(toggle => {
+                const label = toggle.closest('.feature-action').querySelector('.toggle-label');
+                if (label) {
+                    label.textContent = toggle.checked ? 'ON' : 'OFF';
+                    label.style.color = toggle.checked ? 'var(--neon-blue)' : 'var(--text-muted)';
+                }
+            });
+
+            const statusTitle = document.getElementById('optimization-status');
+            const statusDesc = document.getElementById('optimization-desc');
+
+            if (activeCount === 3) {
+                statusTitle.textContent = "Optimasi Telah Aktif";
+                statusTitle.style.color = "#fff";
+                statusDesc.textContent = "Sistem siap menyesuaikan performa HP lu.";
+            } else if (activeCount > 0) {
+                statusTitle.textContent = "Optimasi Sebagian Aktif";
+                statusTitle.style.color = "#ffcc00";
+                statusDesc.textContent = "Beberapa fitur optimasi dimatikan.";
+            } else {
+                statusTitle.textContent = "Optimasi Tidak Aktif";
+                statusTitle.style.color = "#ff4444";
+                statusDesc.textContent = "Semua fitur optimasi sedang dimatikan.";
+            }
+
+            updateRAM();
+            updateCPU();
+            updatePing();
+        }
+
+        // ================= RESET SEMUA TOGGLE =================
+        function resetToggles() {
+            const allToggles = document.querySelectorAll('.feature-toggle');
+            
+            allToggles.forEach(toggle => {
+                toggle.checked = false; 
+                
+                const label = toggle.closest('.feature-action').querySelector('.toggle-label');
+                if (label) {
+                    label.textContent = 'OFF';
+                    label.style.color = 'var(--text-muted)';
+                }
+
+                if (toggle.id === 'toggle-fps-monitor') {
+                    fpsOverlay.style.display = 'none';
+                    if (window.GGMP && GGMP.stopFakeFps) GGMP.stopFakeFps();
+                    stopFpsSimulation();
+                }
+            });
+            
+            updateStatus();
+        }
+    </script>
+</body>
+</html>
